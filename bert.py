@@ -48,7 +48,7 @@ class BertSelfAttention(nn.Module):
     # normalize the scores
     # multiply the attention scores to the value and get back V'
     # next, we need to concat multi-heads and recover the original shape [bs, seq_len, num_attention_heads * attention_head_size = hidden_size]
-    # TODO 各维度分别是什么
+    # TODO 各维度分别是什么,问题好像出在一二维的意义上.
     attention_qkv = torch.matmul(query, key.transpose(-1, -2))
     attention_scores = attention_qkv / math.sqrt(self.attention_head_size)
     attention_scores = attention_scores + attention_mask
@@ -56,7 +56,7 @@ class BertSelfAttention(nn.Module):
     attention_probs = self.dropout(attention_probs) # 应该在这吗
     attention_value = torch.matmul(attention_probs, value) #shape 为 bs, num_attention_heads, seq_len, attention_head_size
     # 下一步要把attention_value的维度变成[bs, seq_len, hidden_size]
-    bs,seq_len = attention_value.shape[:2]
+    bs,n_heads,seq_len = attention_value.shape[:3]
     assert self.attention_head_size * self.num_attention_heads == self.all_head_size
     attention_value = attention_value.transpose(1, 2).contiguous().view(bs, seq_len, self.all_head_size)
     return attention_value
